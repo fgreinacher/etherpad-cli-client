@@ -49,12 +49,21 @@ const apiCall = async (
   return res.body as {code: number; message: string; data: unknown};
 };
 
-const withTimeout = <T>(p: Promise<T>, ms: number, label: string): Promise<T> =>
-  Promise.race([
-    p,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`timeout: ${label}`)), ms)),
-  ]);
+const withTimeout = async <T>(p: Promise<T>, ms: number, label: string): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`timeout: ${label}`)), ms);
+      }),
+    ]);
+  } finally {
+    // Clear the pending timer so a fast-resolving promise doesn't leave a
+    // dangling timeout keeping the test process alive until it fires.
+    if (timer) clearTimeout(timer);
+  }
+};
 
 test('live wire round-trip via USER_CHANGES', async (t) => {
   if (!API_KEY) {
@@ -108,7 +117,10 @@ test('live wire round-trip via USER_CHANGES', async (t) => {
 
     assert.ok(roundTripped, `appended text did not round-trip; pad contained: ${JSON.stringify(lastText)}`);
   } finally {
-    client?.close();
+    // connect() assigns close() only after its async bootstrap resolves, so
+    // the method may still be undefined here — guard the call itself, not just
+    // the (always-defined) client reference.
+    client?.close?.();
     // Best-effort cleanup.
     try {
       await apiCall('deletePad', {padID: padId});
