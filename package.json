@@ -39,13 +39,17 @@
     "@types/superagent": "^8.1.7",
     "eslint": "^9.32.0",
     "eslint-config-etherpad": "^3.0.13",
+    "tsx": "^4.22.4",
     "typescript": "^5.4.2"
   },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "lint": "eslint .",
-    "lint:fix": "eslint --fix ."
+    "lint:fix": "eslint --fix .",
+    "test": "pnpm run test:vectors && pnpm run test:smoke",
+    "test:vectors": "tsx --test test/vectors.test.ts",
+    "test:smoke": "tsx --test test/smoke.test.ts"
   },
   "engines": {
     "node": ">=18.0.0"
