@@ -2,6 +2,9 @@
   "name": "etherpad-cli-client",
   "description": "Node Client for Etherpad",
   "version": "4.0.3",
+  "bugs": {
+    "url": "https://github.com/ether/etherpad-cli-client/issues"
+  },
   "type": "module",
   "packageManager": "pnpm@11.1.2",
   "author": {
